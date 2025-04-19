@@ -1,5 +1,2 @@
-PNG
-
-
 <?php
 phpinfo();
