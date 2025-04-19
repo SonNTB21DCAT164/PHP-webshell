@@ -1,5 +1,4 @@
 âPNG
 
    
-IHDR   f  7   #y†   sRGB ÆŒÈ   gAMA  ±è
-¸a   	pHYs  t  tﬁfx   tEXtComment <?php phpinfo(); ?>
+<?php phpinfo(); ?>
